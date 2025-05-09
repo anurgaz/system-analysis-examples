@@ -1,0 +1,64 @@
+@startuml
+hide footbox
+
+skinparam {
+    EntityBackgroundColor #7acff5
+    EntityBorderColor #000
+    ParticipantBackgroundColor #7acff5
+    ParticipantBorderColor #000
+    ActorBackgroundColor #7acff5
+    ActorBorderColor #000
+    BoundaryBackgroundColor #7acff5
+    BoundaryBorderColor #000
+    DatabaseBackgroundColor #7acff5
+    DatabaseBorderColor #000
+
+    SequenceLifeLineBackgroundColor #7acff5
+    SequenceLifeLineBorderColor #000
+	BackgroundColor #00
+
+    NoteBackgroundColor #f3e7f8
+    NoteBorderColor #cc93e1
+    NoteRoundCorner 20
+    ArrowColor #000
+
+    SequenceGroupBorderThickness 1
+    Shadowing false
+}
+autonumber
+
+Actor user as "Пользователь"
+participant front as "AliFront"
+participant aliap as "Aliapp"
+participant sender as "Sender"
+
+activate user
+user -> front: Выбрал нужный платеж \nи перешел в его детали
+deactivate user
+activate front
+front -> aliap: Запрос информации по платежам \nклиента **#method: get_history_repayments**
+activate aliap
+aliap -> aliap: Поиск в БД информации по проведенным \nплатежам и email-адресам клиента
+aliap --> front: Информация с детализацией платежа \nscreen": "history_repayments_details"
+front --> user: Отображение экрана детализацией экрана
+activate user
+user -> front: Ввод email
+front -> front: Валидация формата\nвведенного email-адреса
+front --> user: Активация кнопки "Отправить"
+user -> front: Нажатие кнопки "Отправить"
+deactivate user
+front -> aliap: Перадача email пользователя \n **#method: send_payment_to_email**
+deactivate front
+aliap -> aliap: Генерация PDF файла \nс детализацией платежа
+aliap -> sender: Запрос с email адесом,\n PDF файлом и темой письма \n **#method: email**
+deactivate aliap
+activate sender
+sender -> user: Отправка email с PDF файлом детализации
+activate user
+
+activate aliap
+sender --> aliap: Ответ об успешной отправке письма
+deactivate
+aliap -> aliap: Сохранение email пользователя
+
+@enduml

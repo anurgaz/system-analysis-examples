@@ -1,0 +1,71 @@
+@startuml
+hide footbox
+
+skinparam {
+    EntityBackgroundColor #7acff5
+    EntityBorderColor #000
+    ParticipantBackgroundColor #7acff5
+    ParticipantBorderColor #000
+    ActorBackgroundColor #7acff5
+    ActorBorderColor #000
+    BoundaryBackgroundColor #7acff5
+    BoundaryBorderColor #000
+    DatabaseBackgroundColor #7acff5
+    DatabaseBorderColor #000
+
+    SequenceLifeLineBackgroundColor #7acff5
+    SequenceLifeLineBorderColor #000
+
+	BackgroundColor #00
+
+    NoteBackgroundColor #f3e7f8
+    NoteBorderColor #cc93e1
+    NoteRoundCorner 20
+    ArrowColor #000
+
+    SequenceGroupBorderThickness 1
+    Shadowing false
+}
+autonumber
+
+actor user as "Пользователь"
+participant ali as "Ali"
+participant fr as "Ali-front"
+participant app as "Ali-app"
+participant db as "БД"
+participant mkk as "МКК"
+
+activate ali
+
+ali -> fr: Перенаправляет Клиента \nна главный \nэкран рассрочки\nпо ссылке, \nполученной от Ali-app
+deactivate ali
+activate fr
+fr -> app: Запрашивает данные \nдля главного экрана \nрассрочки POST /#get_status
+deactivate fr
+activate app
+app -> mkk: Запрашивает данные клиента
+note right
+Метод: ###########
+end note
+activate mkk
+mkk --> app: Получает данные клиента
+deactivate mkk
+
+app -> app: <font color=red>+</font> Обнаруживает, что заявка в МКК \nсо Статусом заявки \nпараметр status = CLOSED
+app -> app: <font color=red>+</font> Обнаруживает, что Cтатус заявки в \n в БД Ali-app отличен от CLOSED
+app -> app: <font color=red>+</font> Обнаруживает, что \n<Лимит по линии> = <Баланс линии>
+app -> db: Запрашивает изменение статуса \n(поле state таблицы contracts) \nна 'CLOSED' для заявки \nс номером = contract_number
+activate db
+db --> app: OK
+
+deactivate db
+app -> app: Устанавливает параметр \ncontract_closed: true
+app -> fr: Информация о закрытой рассрочки  \n(screen = main_screen)
+deactivate app
+activate fr
+
+fr -> user: Отображает экран \nзакрытой рассрочки
+
+
+@enduml
+
